@@ -31,11 +31,12 @@ public class Main extends SimpleApplication implements ActionListener {
     float heading = 0;
     int input = 10;
     Node roomba_node;
+    boolean lock;
     IRobotCommandInterface robotCommandInterface;
 
     public Main() {
         super();
-        robotCommandInterface = new FakeRobotCommandInterface();
+        robotCommandInterface = new TCPRobotCommandInterface();
     }
 
     public static void main(String[] args) {
@@ -47,13 +48,13 @@ public class Main extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleInitApp() {
-        FilterPostProcessor fpp=new FilterPostProcessor(assetManager);
+        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         fpp.addFilter(new CartoonEdgeFilter());
         viewPort.addProcessor(fpp);
 
         greenMaterial = new Material(assetManager, Materials.UNSHADED);
         greenMaterial.setColor("Color", ColorRGBA.Green);
-        redMaterial = new Material(assetManager,  Materials.UNSHADED);
+        redMaterial = new Material(assetManager, Materials.UNSHADED);
         redMaterial.setColor("Color", ColorRGBA.Red);
         blackMaterial = new Material(assetManager, Materials.UNSHADED);
         blackMaterial.setColor("Color", ColorRGBA.Black);
@@ -91,7 +92,11 @@ public class Main extends SimpleApplication implements ActionListener {
             Vector3f location = roomba_node.getChild("robot_sensors").getWorldTranslation().clone().add(v);
             Cylinder object = new Cylinder(100, 100, (float) (detectedObject.width / 2.0), 20f, true, false);
             Geometry objectG = new Geometry("object", object);
-            objectG.setMaterial(redMaterial);
+            if(detectedObject.width < 8) {
+                objectG.setMaterial(greenMaterial);
+            } else {
+                objectG.setMaterial(redMaterial);
+            }
             objectG.move(location);
             rootNode.attachChild(objectG);
         }
@@ -154,32 +159,39 @@ public class Main extends SimpleApplication implements ActionListener {
     }
 
     boolean scanning = false;
+
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
-        if(name.equals("Scan") && isPressed) {
+        if (lock) {
+            return;
+        }
+
+        lock = true;
+        if (name.equals("Scan") && isPressed) {
             scan();
-        } else if(name.equals("INCD") && isPressed) {
+        } else if (name.equals("INCD") && isPressed) {
             input += 5;
             System.out.println(input);
-        } else if(name.equals("DECD") && isPressed) {
+        } else if (name.equals("DECD") && isPressed) {
             input -= 5;
             System.out.println(input);
-        } else if(name.equals("MF") && isPressed) {
+        } else if (name.equals("MF") && isPressed) {
             float dist = robotCommandInterface.moveForward(input);
             System.out.println(dist);
             moveRobot(dist);
-        } else if(name.equals("MB") && isPressed) {
+        } else if (name.equals("MB") && isPressed) {
             float dist = robotCommandInterface.moveBackward(input);
             System.out.println(dist);
             moveRobot(dist);
-        } else if(name.equals("RR") && isPressed) {
+        } else if (name.equals("RR") && isPressed) {
             float angle = robotCommandInterface.rotateRight(input);
             System.out.println(angle);
             rotateRobot(Math.abs(angle));
-        } else if(name.equals("RL") && isPressed) {
+        } else if (name.equals("RL") && isPressed) {
             float angle = robotCommandInterface.rotateLeft(input);
             System.out.println(angle);
             rotateRobot(-Math.abs(angle));
         }
+        lock = false;
     }
 }

@@ -18,6 +18,7 @@ public class DetectedObject {
 
     public static DetectedObject fromString(String string) {
         List<Double> values = Lists.newArrayList();
+        System.out.println(string);
         for (String s : Splitter.on(',').split(string)) {
              values.add(Double.parseDouble(s));
         }
