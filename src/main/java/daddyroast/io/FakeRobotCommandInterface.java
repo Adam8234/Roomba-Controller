@@ -1,12 +1,17 @@
 package daddyroast.io;
 
+import com.google.common.collect.Lists;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class FakeRobotCommandInterface implements IRobotCommandInterface {
     @Override
     public List<DetectedObject> scan() {
-        return new ArrayList<>();
+        List<DetectedObject> list = Lists.newArrayList();
+        list.add(new DetectedObject(10, 90, 10));
+        list.add(new DetectedObject(10, 120, 6));
+        return list;
     }
 
     @Override

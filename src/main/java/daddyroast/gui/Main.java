@@ -25,6 +25,7 @@ import daddyroast.io.IRobotConnection;
 import daddyroast.io.tcp.TCPRobotCommandInterface;
 
 import java.util.List;
+import java.util.Vector;
 
 
 public class Main extends SimpleApplication implements ActionListener {
@@ -36,12 +37,36 @@ public class Main extends SimpleApplication implements ActionListener {
 
     public Main() {
         super();
-        robotCommandInterface = new TCPRobotCommandInterface();
+        robotCommandInterface = new FakeRobotCommandInterface();
     }
 
     public static void main(String[] args) {
         final Main app = new Main();
         app.start();
+    }
+
+    private void clearScanArea() {
+        List<Spatial> children = rootNode.getChildren();
+        for (Spatial child : children) {
+            if(child.getName().equals("object")) {
+                Vector3f post = child.getWorldTranslation().clone();
+                double distance = post.distance(rootNode.getChild("robot_sensors").getWorldTranslation());
+                Vector3f relative = post.subtract(rootNode.getChild("robot_sensors").getWorldTranslation()).normalize();
+                Vector3f rotateRelative = new Vector3f();
+                //rotation matrix because this doesn't have it
+                rotateRelative.setX(relative.x * FastMath.cos(toRads(heading)) - relative.y * FastMath.sin(toRads(heading)));
+                rotateRelative.setY(relative.x * FastMath.sin(toRads(heading)) + relative.y * FastMath.cos(toRads(heading)));
+                //If relative y position is less than 0 we are on angles 180 to 360 which is BAD, we don't want remove objects behind us
+                if(rotateRelative.y < 0) {
+                    continue;
+                }
+                double between = Math.toDegrees(Vector3f.UNIT_X.clone().normalize().angleBetween(rotateRelative));
+                System.out.println(between);
+                if(distance <= 60 && between >= 10 && between <= 170) {
+                    child.removeFromParent();
+                }
+            }
+        }
     }
 
     Material redMaterial, greenMaterial, blackMaterial, orangeMaterial;
@@ -84,6 +109,8 @@ public class Main extends SimpleApplication implements ActionListener {
     }
 
     public void scan() {
+        clearScanArea();
+        //clearScanArea();
         List<DetectedObject> scan = robotCommandInterface.scan();
         for (DetectedObject detectedObject : scan) {
             System.out.println(detectedObject);
