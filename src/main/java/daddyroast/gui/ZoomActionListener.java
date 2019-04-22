@@ -5,7 +5,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 
 public class ZoomActionListener implements ActionListener {
-    Camera cam;
+    private Camera cam;
 
     public ZoomActionListener(Camera cam) {
         this.cam = cam;
@@ -13,10 +13,13 @@ public class ZoomActionListener implements ActionListener {
 
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
-        if(name.equals("ZoomI")){
-            cam.setLocation(cam.getLocation().add(new Vector3f(0, 0, -1)));
-        } else if(name.equals("ZoomO")) {
-            cam.setLocation(cam.getLocation().add(new Vector3f(0, 0, 1)));
+        if (!isPressed) {
+            return;
+        }
+        if (name.equals("ZoomI")) {
+            cam.setLocation(cam.getLocation().add(new Vector3f(0, 0, -10)));
+        } else if (name.equals("ZoomO")) {
+            cam.setLocation(cam.getLocation().add(new Vector3f(0, 0, 10)));
         }
     }
 }

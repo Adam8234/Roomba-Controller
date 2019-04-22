@@ -1,41 +1,67 @@
 package daddyroast.io;
 
-import com.google.common.collect.Lists;
+import daddyroast.gui.GuiHandler;
+import io.reactivex.Observable;
+import io.reactivex.schedulers.Schedulers;
 
-import java.util.ArrayList;
-import java.util.List;
 
-public class FakeRobotCommandInterface implements IRobotCommandInterface {
-    @Override
-    public List<DetectedObject> scan() {
-        List<DetectedObject> list = Lists.newArrayList();
-        list.add(new DetectedObject(10, 90, 10));
-        list.add(new DetectedObject(10, 120, 6));
-        return list;
+public class FakeRobotCommandInterface extends RobotCommandInterface {
+    private FakeRobotConnection fakeRobotCommandInterface = new FakeRobotConnection();
+
+    public FakeRobotCommandInterface(GuiHandler guiHandler) {
+        super(guiHandler);
     }
 
     @Override
-    public float moveForward(int distance) {
-        return distance;
+    public void scan() {
+        super.scan();
+        responseStream.onNext("D");
     }
 
     @Override
-    public float moveBackward(int distance) {
-        return -distance;
+    public void moveForward(int distance) {
+        super.moveForward(distance);
+        Observable.fromCallable(() ->
+        {
+            for (int i = 0; i < distance; i++) {
+                responseStream.onNext("1.0");
+                Thread.sleep(100);
+            }
+            responseStream.onNext("D");
+            return "";
+        }).subscribeOn(Schedulers.newThread()).subscribe();
     }
 
     @Override
-    public float rotateLeft(int angle) {
-        return angle;
+    public void rotateLeft(int angle) {
+        super.rotateLeft(angle);
+        Observable.fromCallable(() ->
+        {
+            for (int i = 0; i < angle; i++) {
+                responseStream.onNext("-1.0");
+                Thread.sleep(100);
+            }
+            responseStream.onNext("D");
+            return "";
+        }).subscribeOn(Schedulers.newThread()).subscribe();
     }
 
     @Override
-    public float rotateRight(int angle) {
-        return angle;
+    public void rotateRight(int angle) {
+        super.rotateRight(angle);
+        Observable.fromCallable(() ->
+        {
+            for (int i = 0; i < angle; i++) {
+                responseStream.onNext("1.0");
+                Thread.sleep(100);
+            }
+            responseStream.onNext("D");
+            return "";
+        }).subscribeOn(Schedulers.newThread()).subscribe();
     }
 
     @Override
     public IRobotConnection getRobotConnection() {
-        return null;
+        return fakeRobotCommandInterface;
     }
 }
