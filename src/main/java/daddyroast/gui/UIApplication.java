@@ -20,13 +20,15 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Line;
 import com.jme3.scene.shape.Sphere;
+import daddyroast.BoulderType;
 import daddyroast.CliffType;
 import daddyroast.State;
-import daddyroast.WallType;
 import daddyroast.io.DetectedObject;
 import daddyroast.io.FakeRobotCommandInterface;
 import daddyroast.io.RobotCommandInterface;
+import daddyroast.io.tcp.TCPRobotCommandInterface;
 
+import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -74,7 +76,7 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
         }
     }
 
-    Material redMaterial, greenMaterial, blackMaterial, orangeMaterial;
+    Material redMaterial, greenMaterial, blackMaterial, orangeMaterial, brownMaterial;
 
     @Override
     public void simpleInitApp() {
@@ -94,7 +96,7 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
         rootNode.attachChild(start);
         start.setText("START");
         start.setSize(5);
-        start.setLocalTranslation(0f - start.getLineWidth() * 0.5f,0f,2f);
+        start.setLocalTranslation(0f - start.getLineWidth() * 0.5f, 0f, 20f);
 
         greenMaterial = new Material(assetManager, Materials.UNSHADED);
         greenMaterial.setColor("Color", ColorRGBA.Green);
@@ -104,6 +106,8 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
         blackMaterial.setColor("Color", ColorRGBA.White);
         orangeMaterial = new Material(assetManager, Materials.UNSHADED);
         orangeMaterial.setColor("Color", ColorRGBA.Orange);
+        brownMaterial = new Material(assetManager, Materials.UNSHADED);
+        brownMaterial.setColor("Color", ColorRGBA.Brown);
 
         flyCam.setEnabled(false);
         viewPort.setBackgroundColor(ColorRGBA.Gray);
@@ -137,13 +141,21 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
         Cylinder mesh = new Cylinder(100, 100, 34.0106f / 2, 10f, true, false);
         Sphere s = new Sphere(100, 100, 2f);
         Geometry sensorG = new Geometry("robot_sensors", s);
-        sensorG.move(0f, 14f, 7f);
+        sensorG.move(0f, 17f, 7f);
         Geometry bodyG = new Geometry("robot_body", mesh);
 
         sensorG.setMaterial(greenMaterial);
         bodyG.setMaterial(blackMaterial);
         roomba_node.attachChild(bodyG);
         roomba_node.attachChild(sensorG);
+
+        Line line = new Line(new Vector3f(0f, 17f, 0f), new Vector3f(0f, 17f + input, 0f));
+        line.setLineWidth(5);
+        Geometry lineG = new Geometry("moveLine", line);
+        Material lineM = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        lineM.setColor("Color", ColorRGBA.Yellow);
+        lineG.setMaterial(lineM);
+        roomba_node.attachChild(lineG);
 
         rootNode.attachChild(roomba_node);
     }
@@ -157,6 +169,7 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
         lock = robotCommandInterface.getState() != State.DONE;
         moveRobotUI();
         rotateRobotUI();
+        addObjectsUI();
     }
 
     @Override
@@ -189,41 +202,58 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
             robotCommandInterface.rotateLeft(input);
         }
         inputText.setText("Input: " + input);
-        inputText.setLocalTranslation((float)(cam.getWidth()*0.95 - inputText.getLineWidth()*.5), inputText.getLineHeight()+5, 0);
-    }
+        inputText.setLocalTranslation((float) (cam.getWidth() * 0.95 - inputText.getLineWidth() * .5), inputText.getLineHeight() + 5, 0);
 
-    @Override
-    public void updateStatus(String string) {
+        roomba_node.getChild("moveLine").removeFromParent();
+        Line line = new Line(new Vector3f(0f, 17f, 0f), new Vector3f(0f, 17f + input, 0f));
+        line.setLineWidth(5);
+        Geometry lineG = new Geometry("moveLine", line);
+        Material lineM = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        lineM.setColor("Color", ColorRGBA.Yellow);
+        lineG.setMaterial(lineM);
+        roomba_node.attachChild(lineG);
     }
 
     @Override
     public void addObject(DetectedObject detectedObject) {
-        System.out.println(detectedObject);
-        float theta = (toRads((float) (detectedObject.angle)) + (-heading * FastMath.PI / 180.0f));
-        Vector3f v = new Vector3f(FastMath.cos(theta), FastMath.sin(theta), 0).normalize().mult((float) detectedObject.distance + (float) detectedObject.width / 2f);
-        Vector3f location = roomba_node.getChild("robot_sensors").getWorldTranslation().clone().add(v);
-        Cylinder object = new Cylinder(100, 100, (float) (detectedObject.width / 2.0), 20f, true, false);
-        Geometry objectG = new Geometry("object", object);
-        if (detectedObject.width < 8) {
-            objectG.setMaterial(greenMaterial);
-        } else {
-            objectG.setMaterial(redMaterial);
-        }
-        objectG.move(location);
-        rootNode.attachChild(objectG);
-    }
+        detectedObjectQueue.add(detectedObject);
 
-    @Override
-    public void addWall(WallType type) {
-    }
-
-    @Override
-    public void addCliff(CliffType type) {
     }
 
     @Override
     public void moveRobot(double distance) {
         moveQueue.add(distance);
+    }
+
+
+    private void addObjectsUI() {
+        while (!detectedObjectQueue.isEmpty()) {
+            DetectedObject detectedObject = detectedObjectQueue.remove();
+
+            float theta = (toRads((float) (detectedObject.angle)) + (-heading * FastMath.PI / 180.0f));
+            Vector3f v = new Vector3f(FastMath.cos(theta), FastMath.sin(theta), 0).normalize().mult((float) detectedObject.distance + (float) detectedObject.width / 2f);
+            Vector3f location = roomba_node.getChild("robot_sensors").getWorldTranslation().clone().add(v);
+            Cylinder object = new Cylinder(100, 100, (float) (detectedObject.width / 2.0), 20f, true, false);
+            Geometry objectG = new Geometry("object", object);
+
+            Material objectMaterial = new Material(assetManager, Materials.UNSHADED);
+            if (detectedObject.getName().equals("cliff")) {
+                objectMaterial.setColor("Color", ColorRGBA.Black);
+            } else if (detectedObject.getName().equals("boulder")) {
+                objectMaterial.setColor("Color", ColorRGBA.DarkGray);
+            } else if (detectedObject.getName().equals("barrier")) {
+                objectMaterial.setColor("Color", ColorRGBA.White);
+            } else {
+                if (detectedObject.width < 8) {
+                    objectMaterial.setColor("Color", ColorRGBA.Green);
+                } else {
+                    objectMaterial.setColor("Color", ColorRGBA.Red);
+                }
+            }
+            objectG.setMaterial(objectMaterial);
+            objectG.move(location);
+            rootNode.attachChild(objectG);
+        }
     }
 
     private void moveRobotUI() {
@@ -236,8 +266,12 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
             Line line = new Line(previous, previous.add(v));
             line.setLineWidth(5);
             Geometry lineG = new Geometry("trail", line);
-            lineG.setMaterial(orangeMaterial);
-
+            lineG.move(0, 0, 20f);
+            if (distance < 0) {
+                lineG.setMaterial(brownMaterial);
+            } else {
+                lineG.setMaterial(orangeMaterial);
+            }
             roomba_node.move(v);
             rootNode.attachChild(lineG);
         }

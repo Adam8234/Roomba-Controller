@@ -9,11 +9,20 @@ public class DetectedObject {
     public double distance;
     public double angle;
     public double width;
+    public String name;
 
     public DetectedObject(double distance, double angle, double width) {
         this.distance = distance;
         this.angle = angle;
         this.width = width;
+        name = "object";
+    }
+
+    public DetectedObject(double distance, double angle, double width, String name) {
+        this.distance = distance;
+        this.angle = angle;
+        this.width = width;
+        this.name = name;
     }
 
     public static DetectedObject fromString(String string) {
@@ -23,6 +32,10 @@ public class DetectedObject {
              values.add(Double.parseDouble(s));
         }
         return new DetectedObject(values.get(1), values.get(0), values.get(2));
+    }
+
+    public String getName() {
+        return name;
     }
 
     @Override

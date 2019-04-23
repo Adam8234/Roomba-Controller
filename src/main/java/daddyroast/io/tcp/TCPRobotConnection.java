@@ -28,13 +28,13 @@ public class TCPRobotConnection implements IRobotConnection {
     public void sendString(String string) {
         try {
             OutputStream outputStream = socket.getOutputStream();
-            OutputStreamWriter writer = new OutputStreamWriter(outputStream, StandardCharsets.US_ASCII);
             byte[] bytes = string.getBytes(StandardCharsets.US_ASCII);
             for (int i = 0; i < bytes.length; i++) {
                 outputStream.write(bytes, i, 1);
                 outputStream.flush();
                 Thread.sleep(100);
             }
+            System.out.println("Sent String: " + string);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
