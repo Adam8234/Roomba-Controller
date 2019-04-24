@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import daddyroast.io.IRobotConnection;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -15,12 +16,15 @@ public class TCPRobotConnection implements IRobotConnection {
 
     @Override
     public boolean init() {
-        try {
-            socket = new Socket("192.168.1.1", 288);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+        while (socket == null || !socket.isConnected()) {
+            System.out.println("Connecting");
+            try {
+                socket = new Socket("192.168.1.1", 288);
+            } catch (Exception e) {
+                System.out.println("Failed to connect");
+            }
         }
+        System.out.println("Connected!");
         return true;
     }
 

@@ -49,7 +49,7 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
 
     public UIApplication() {
         super();
-        robotCommandInterface = new FakeRobotCommandInterface(this);
+        robotCommandInterface = new TCPRobotCommandInterface(this);
     }
 
     private void clearScanArea() {

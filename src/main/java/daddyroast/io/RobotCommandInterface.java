@@ -89,7 +89,6 @@ public abstract class RobotCommandInterface implements Observer<String> {
                             }
                             break;
                     }
-                    e.printStackTrace();
                     //We then have an object we just ran into
                 }
                 break;
