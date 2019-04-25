@@ -98,7 +98,7 @@ public abstract class RobotCommandInterface implements Observer<String> {
                     double angle = -Double.parseDouble(s);
                     guiHandler.rotateRobot(angle);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     //WHAT
                 }
                 break;
@@ -107,7 +107,7 @@ public abstract class RobotCommandInterface implements Observer<String> {
                     DetectedObject detectedObject = DetectedObject.fromString(s);
                     guiHandler.addObject(detectedObject);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                 }
                 break;
         }
@@ -127,6 +127,10 @@ public abstract class RobotCommandInterface implements Observer<String> {
     public void scan() {
         getRobotConnection().sendString("s;");
         state = State.SCANNING;
+    }
+
+    public void killRobot() {
+        getRobotConnection().sendString("x;");
     }
 
     public void moveForward(int distance) {
@@ -150,6 +154,10 @@ public abstract class RobotCommandInterface implements Observer<String> {
 
     public State getState() {
         return state;
+    }
+
+    public void resetState() {
+        state = State.DONE;
     }
 
     public abstract IRobotConnection getRobotConnection();

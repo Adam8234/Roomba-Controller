@@ -15,7 +15,13 @@ public class FakeRobotCommandInterface extends RobotCommandInterface {
     @Override
     public void scan() {
         super.scan();
-        responseStream.onNext("D");
+        Observable.fromCallable(() ->
+        {
+            responseStream.onNext("90.0,10,10");
+            Thread.sleep(1000);
+            responseStream.onNext("D");
+            return "";
+        }).subscribeOn(Schedulers.newThread()).subscribe();
     }
 
     @Override
@@ -38,8 +44,8 @@ public class FakeRobotCommandInterface extends RobotCommandInterface {
         Observable.fromCallable(() ->
         {
             for (int i = 0; i < angle; i++) {
-                responseStream.onNext("-1.0");
-                Thread.sleep(100);
+                responseStream.onNext("1.0");
+                Thread.sleep(50);
             }
             responseStream.onNext("D");
             return "";
@@ -52,8 +58,8 @@ public class FakeRobotCommandInterface extends RobotCommandInterface {
         Observable.fromCallable(() ->
         {
             for (int i = 0; i < angle; i++) {
-                responseStream.onNext("1.0");
-                Thread.sleep(100);
+                responseStream.onNext("-1.0");
+                Thread.sleep(50);
             }
             responseStream.onNext("D");
             return "";

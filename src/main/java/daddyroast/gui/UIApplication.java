@@ -68,7 +68,6 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
                     continue;
                 }
                 double between = Math.toDegrees(Vector3f.UNIT_X.clone().normalize().angleBetween(rotateRelative));
-                System.out.println(between);
                 if (distance <= 60 && between >= 10 && between <= 170) {
                     child.removeFromParent();
                 }
@@ -80,6 +79,8 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
 
     @Override
     public void simpleInitApp() {
+        setDisplayFps(false);
+        setDisplayStatView(false);
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         fpp.addFilter(new CartoonEdgeFilter());
         viewPort.addProcessor(fpp);
@@ -123,8 +124,10 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
         inputManager.addMapping("MB", new KeyTrigger(KeyInput.KEY_S));
         inputManager.addMapping("RR", new KeyTrigger(KeyInput.KEY_D));
         inputManager.addMapping("RL", new KeyTrigger(KeyInput.KEY_A));
+        inputManager.addMapping("RESET_STATE", new KeyTrigger(KeyInput.KEY_Y));
+        //inputManager.addMapping("KILL ROBOT", new KeyTrigger(KeyInput.KEY_T));
 
-        inputManager.addListener(this, "Scan", "INCD", "DECD", "MF", "MB", "RR", "RL");
+        inputManager.addListener(this, "Scan", "INCD", "DECD", "MF", "MB", "RR", "RL", "RESET_STATE", "KILL_ROBOT");
         inputManager.addListener(new ZoomActionListener(cam), "ZoomI", "ZoomO");
         cam.getRotation();
 
@@ -170,6 +173,9 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
         moveRobotUI();
         rotateRobotUI();
         addObjectsUI();
+
+        statusText.setText(robotCommandInterface.getState().toString());
+        statusText.setLocalTranslation(cam.getWidth() * 0.5f - statusText.getLineWidth() * 0.5f, statusText.getLineHeight() + 5f, 0f);
     }
 
     @Override
@@ -180,26 +186,14 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
 
     @Override
     public void onAction(String name, boolean isPressed, float tpf) {
-        if (lock) {
-            return;
-        }
-        if (name.equals("Scan") && isPressed) {
-            clearScanArea();
-            robotCommandInterface.scan();
+        if(name.equals("RESET_STATE")) {
+            robotCommandInterface.resetState();
+        } else if(name.equals("KILL_ROBOT")){
+            robotCommandInterface.killRobot();
         } else if (name.equals("INCD") && isPressed) {
             input += 5;
-            System.out.println(input);
         } else if (name.equals("DECD") && isPressed) {
             input -= 5;
-            System.out.println(input);
-        } else if (name.equals("MF") && isPressed) {
-            robotCommandInterface.moveForward(input);
-        } else if (name.equals("MB") && isPressed) {
-            //robotCommandInterface.moveBackward(input);
-        } else if (name.equals("RR") && isPressed) {
-            robotCommandInterface.rotateRight(input);
-        } else if (name.equals("RL") && isPressed) {
-            robotCommandInterface.rotateLeft(input);
         }
         inputText.setText("Input: " + input);
         inputText.setLocalTranslation((float) (cam.getWidth() * 0.95 - inputText.getLineWidth() * .5), inputText.getLineHeight() + 5, 0);
@@ -212,6 +206,23 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
         lineM.setColor("Color", ColorRGBA.Yellow);
         lineG.setMaterial(lineM);
         roomba_node.attachChild(lineG);
+
+        if (lock) {
+            return;
+        }
+        if (name.equals("Scan") && isPressed) {
+            clearScanArea();
+            robotCommandInterface.scan();
+        } else if (name.equals("MF") && isPressed) {
+            robotCommandInterface.moveForward(input);
+        } else if (name.equals("MB") && isPressed) {
+            //robotCommandInterface.moveBackward(input);
+        } else if (name.equals("RR") && isPressed) {
+            robotCommandInterface.rotateRight(input);
+        } else if (name.equals("RL") && isPressed) {
+            robotCommandInterface.rotateLeft(input);
+        }
+
     }
 
     @Override
@@ -229,12 +240,13 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
     private void addObjectsUI() {
         while (!detectedObjectQueue.isEmpty()) {
             DetectedObject detectedObject = detectedObjectQueue.remove();
+            Node objectNode = new Node(detectedObject.name);
 
             float theta = (toRads((float) (detectedObject.angle)) + (-heading * FastMath.PI / 180.0f));
             Vector3f v = new Vector3f(FastMath.cos(theta), FastMath.sin(theta), 0).normalize().mult((float) detectedObject.distance + (float) detectedObject.width / 2f);
             Vector3f location = roomba_node.getChild("robot_sensors").getWorldTranslation().clone().add(v);
             Cylinder object = new Cylinder(100, 100, (float) (detectedObject.width / 2.0), 20f, true, false);
-            Geometry objectG = new Geometry("object", object);
+            Geometry objectG = new Geometry("object_object", object);
 
             Material objectMaterial = new Material(assetManager, Materials.UNSHADED);
             if (detectedObject.getName().equals("cliff")) {
@@ -250,9 +262,20 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
                     objectMaterial.setColor("Color", ColorRGBA.Red);
                 }
             }
+            BitmapFont font = assetManager.loadFont("Interface/Fonts/Default.fnt");
+            BitmapText objectText = new BitmapText(font, false);
+            rootNode.attachChild(objectText);
+            objectText.setText(Double.toString(detectedObject.width));
+            objectText.setSize(5);
+            objectText.setLocalTranslation(-objectText.getLineWidth() * 0.5f, (float) detectedObject.width * .25f + objectText.getLineHeight() * 0.25f, 20f);
             objectG.setMaterial(objectMaterial);
-            objectG.move(location);
-            rootNode.attachChild(objectG);
+
+            objectNode.move(location);
+
+            objectNode.attachChild(objectG);
+            objectNode.attachChild(objectText);
+
+            rootNode.attachChild(objectNode);
         }
     }
 

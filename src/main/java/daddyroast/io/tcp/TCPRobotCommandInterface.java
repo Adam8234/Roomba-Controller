@@ -10,7 +10,7 @@ public class TCPRobotCommandInterface extends RobotCommandInterface {
     Runnable readingThread = () -> {
         while(true) {
             for (String s : Splitter.on(';').split(connection.readString())) {
-                if(s.charAt(0) != 0) {
+                if(!s.isEmpty() || s.charAt(0) != 0) {
                     responseStream.onNext(s);
                 }
             }
