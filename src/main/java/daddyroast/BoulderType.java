@@ -1,8 +1,9 @@
 package daddyroast;
 
-import com.jme3.math.Vector3f;
-import daddyroast.io.DetectedObject;
-
+/**
+ * Short objects
+ * @author adamcorp
+ */
 public enum BoulderType {
     LEFT(new DetectedObject(7, 180, 12.5, "boulder")),
     FRONT(new DetectedObject(0, 90, 12.5, "boulder")),

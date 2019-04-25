@@ -1,7 +1,9 @@
 package daddyroast;
 
-import daddyroast.io.DetectedObject;
-
+/**
+ * White lines
+ * @author adamcorp
+ */
 public enum BarrierType {
     LEFT(new DetectedObject(7, 180, 12, "barrier")),
     FRONT_LEFT(new DetectedObject(3, 100, 12, "barrier")),

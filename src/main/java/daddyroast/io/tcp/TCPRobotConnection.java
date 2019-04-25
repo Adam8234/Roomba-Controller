@@ -11,8 +11,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
+/**
+ * Communicates with the robot via TCP WiFi
+ * @author adamcorp
+ */
 public class TCPRobotConnection implements IRobotConnection {
-    Socket socket;
+    private Socket socket;
 
     @Override
     public boolean init() {
@@ -33,12 +37,12 @@ public class TCPRobotConnection implements IRobotConnection {
         try {
             OutputStream outputStream = socket.getOutputStream();
             byte[] bytes = string.getBytes(StandardCharsets.US_ASCII);
+            //send one byte at a time slowly
             for (int i = 0; i < bytes.length; i++) {
                 outputStream.write(bytes, i, 1);
                 outputStream.flush();
                 Thread.sleep(100);
             }
-            System.out.println("Sent String: " + string);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -60,6 +64,10 @@ public class TCPRobotConnection implements IRobotConnection {
         }
     }
 
+    /**
+     * Synchronous reading from the robot. Blocks thread until it sees a D (Done) response
+     * @return The strings received from the response
+     */
     public List<String> readResponse() {
         List<String> response = Lists.newArrayList();
         while (true) {

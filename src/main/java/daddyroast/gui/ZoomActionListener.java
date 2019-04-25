@@ -4,6 +4,10 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 
+/**
+ * Zooms the camera in and out
+ * @author adamcorp
+ */
 public class ZoomActionListener implements ActionListener {
     private Camera cam;
 

@@ -1,10 +1,9 @@
 package daddyroast;
 
-import com.jme3.math.Vector3f;
-import daddyroast.io.DetectedObject;
-
-import java.util.Vector;
-
+/**
+ * Cliff
+ * @author adamcorp
+ */
 public enum CliffType {
     LEFT(new DetectedObject(7, 180, 12, "cliff")),
     FRONT_LEFT(new DetectedObject(3, 100, 12, "cliff")),

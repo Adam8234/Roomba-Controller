@@ -20,30 +20,31 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Cylinder;
 import com.jme3.scene.shape.Line;
 import com.jme3.scene.shape.Sphere;
-import daddyroast.BoulderType;
-import daddyroast.CliffType;
 import daddyroast.State;
-import daddyroast.io.DetectedObject;
-import daddyroast.io.FakeRobotCommandInterface;
+import daddyroast.DetectedObject;
 import daddyroast.io.RobotCommandInterface;
 import daddyroast.io.tcp.TCPRobotCommandInterface;
 
-import java.awt.*;
 import java.util.LinkedList;
 import java.util.List;
 
-
+/**
+ * Graphics
+ * @author adamcorp
+ */
 public class UIApplication extends SimpleApplication implements ActionListener, GuiHandler {
-    Node roomba_node;
-    float heading = 0;
-    int input = 10;
-    boolean lock;
-    RobotCommandInterface robotCommandInterface;
+    //Asynchronous Queues to make the main thread happy
+    private LinkedList<Double> moveQueue = new LinkedList<>();
+    private LinkedList<Double> turnQueue = new LinkedList<>();
+    private LinkedList<DetectedObject> detectedObjectQueue = new LinkedList<>();
 
-    //Queues to make the main thread happy
-    LinkedList<Double> moveQueue = new LinkedList<>();
-    LinkedList<Double> turnQueue = new LinkedList<>();
-    LinkedList<DetectedObject> detectedObjectQueue = new LinkedList<>();
+    private Node roomba_node;
+    private float heading = 0;
+    private int input = 10;
+    private boolean lock;
+    private RobotCommandInterface robotCommandInterface;
+
+
     private BitmapText statusText;
     private BitmapText inputText;
 
@@ -60,7 +61,7 @@ public class UIApplication extends SimpleApplication implements ActionListener, 
                 double distance = post.distance(rootNode.getChild("robot_sensors").getWorldTranslation());
                 Vector3f relative = post.subtract(rootNode.getChild("robot_sensors").getWorldTranslation()).normalize();
                 Vector3f rotateRelative = new Vector3f();
-                //rotation matrix because this doesn't have it
+                //rotation matrix because this doesn't have it..
                 rotateRelative.setX(relative.x * FastMath.cos(toRads(heading)) - relative.y * FastMath.sin(toRads(heading)));
                 rotateRelative.setY(relative.x * FastMath.sin(toRads(heading)) + relative.y * FastMath.cos(toRads(heading)));
                 //If relative y position is less than 0 we are on angles 180 to 360 which is BAD, we don't want remove objects behind us

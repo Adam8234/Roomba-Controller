@@ -1,14 +1,17 @@
 package daddyroast.io;
 
-import daddyroast.BarrierType;
-import daddyroast.BoulderType;
-import daddyroast.CliffType;
-import daddyroast.State;
+import daddyroast.*;
 import daddyroast.gui.GuiHandler;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.PublishSubject;
 
+/**
+ * RobotCommandInterface takes responses from the asynchronous stream from the PublishSubject
+ * and communicates with the UI with the GUI Handler
+ *
+ * @author adamcorp
+ */
 public abstract class RobotCommandInterface implements Observer<String> {
     protected PublishSubject<String> responseStream = PublishSubject.create();
     private GuiHandler guiHandler;
@@ -24,6 +27,11 @@ public abstract class RobotCommandInterface implements Observer<String> {
 
     }
 
+    /**
+     * onNext is called when we receive events from the robot.
+     * BE CAREFUL YOU ARE NOT GUARANTEED TO BE ON THE UI THREAD
+     * You will need to implement your own way of communicating with the UI Thread
+     */
     @Override
     public void onNext(String s) {
         if (s.charAt(0) == 'D') {
@@ -89,7 +97,6 @@ public abstract class RobotCommandInterface implements Observer<String> {
                             }
                             break;
                     }
-                    //We then have an object we just ran into
                 }
                 break;
             case TURNING_RIGHT:
@@ -98,8 +105,6 @@ public abstract class RobotCommandInterface implements Observer<String> {
                     double angle = -Double.parseDouble(s);
                     guiHandler.rotateRobot(angle);
                 } catch (Exception e) {
-                    //e.printStackTrace();
-                    //WHAT
                 }
                 break;
             case SCANNING:
@@ -107,7 +112,6 @@ public abstract class RobotCommandInterface implements Observer<String> {
                     DetectedObject detectedObject = DetectedObject.fromString(s);
                     guiHandler.addObject(detectedObject);
                 } catch (Exception e) {
-                    //e.printStackTrace();
                 }
                 break;
         }
@@ -125,8 +129,8 @@ public abstract class RobotCommandInterface implements Observer<String> {
     }
 
     public void scan() {
-        getRobotConnection().sendString("s;");
         state = State.SCANNING;
+        getRobotConnection().sendString("s;");
     }
 
     public void killRobot() {
