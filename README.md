@@ -1,4 +1,4 @@
-# Roomba-Controller
+# CPRE 288 - Roomba-Controller
 UI used to communicate with a Texas Instruments micro controller to control a "Mars Rover" roomba
 
 Spent about 1.5 weeks designing and coding this project.
